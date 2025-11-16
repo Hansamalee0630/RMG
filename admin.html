@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RMG Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --dark-brown: #2A1B0E;
+            --amber-gold: #F4A300;
+            --white: #FFFFFF;
+            --soft-cream: #FFF6E9;
+            --warm-gray: #6B625B;
+            --light-gray: #f5f5f5;
+            --danger: #f44336;
+            --success: #4CAF50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-gray);
+            color: var(--warm-gray);
+        }
+
+        /* Animations */
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        /* Login Screen */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--dark-brown) 0%, #3d2817 100%);
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: rgba(244, 163, 0, 0.1);
+            border-radius: 50%;
+            top: -50px;
+            left: -50px;
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        .login-container::after {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: rgba(244, 163, 0, 0.05);
+            border-radius: 50%;
+            bottom: 50px;
+            right: 50px;
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        .login-box {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+            animation: slideInUp 0.6s ease-out;
+            position: relative;
+            z-index: 1;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(244, 163, 0, 0.1);
+        }
+
+        .login-box h1 {
+            color: var(--dark-brown);
+            margin-bottom: 2rem;
+            text-align: center;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--dark-brown), var(--amber-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .login-box .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .login-box label {
+            display: block;
+            color: var(--dark-brown);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #eee;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .login-box input:focus {
+            outline: none;
+            border-color: var(--amber-gold);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(244, 163, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 0.8rem;
+            background: linear-gradient(135deg, var(--amber-gold) 0%, #e09200 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .login-btn:hover::before {
+            left: 100%;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(244, 163, 0, 0.3);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .error-message {
+            color: var(--danger);
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            animation: slideInUp 0.3s ease-out;
+            background: #ffebee;
+            padding: 1rem;
+            border-radius: 6px;
+            border-left: 4px solid var(--danger);
+        }
+
+        /* Admin Dashboard */
+        .admin-container {
+            display: none;
+        }
+
+        .admin-container.active {
+            display: flex;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .admin-sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, var(--dark-brown) 0%, #3d2817 100%);
+            color: white;
+            padding: 2rem 0;
+            min-height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+        }
+
+        .admin-sidebar h2 {
+            color: var(--amber-gold);
+            padding: 0 1.5rem;
+            margin-bottom: 2rem;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+        }
+
+        .admin-nav {
+            list-style: none;
+        }
+
+        .admin-nav li {
+            margin: 0;
+        }
+
+        .admin-nav a {
+            display: block;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            padding: 0.9rem 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .admin-nav a::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: var(--amber-gold);
+            transform: scaleY(0);
+            transform-origin: top;
+            transition: transform 0.3s ease;
+        }
+
+        .admin-nav a:hover {
+            background-color: rgba(244, 163, 0, 0.1);
+            color: white;
+        }
+
+        .admin-nav a:hover::before {
+            transform: scaleY(1);
+        }
+
+        .admin-nav a.active {
+            background-color: var(--amber-gold);
+            color: var(--dark-brown);
+            font-weight: 700;
+        }
+
+        .admin-nav a.active::before {
+            display: none;
+        }
+
+        .logout-btn {
+            margin-top: 3rem;
+            background-color: var(--danger) !important;
+        }
+
+        .logout-btn:hover {
+            background-color: #d32f2f !important;
+        }
+
+        .admin-main {
+            margin-left: 260px;
+            padding: 2rem;
+            flex: 1;
+            animation: slideInUp 0.5s ease-out;
+        }
+
+        .admin-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #f0f0f0;
+        }
+
+        .admin-header h1 {
+            color: var(--dark-brown);
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-info p {
+            color: var(--warm-gray);
+            margin-bottom: 0.3rem;
+            font-size: 0.95rem;
+        }
+
+        .user-info p:last-child {
+            font-weight: 600;
+            color: var(--dark-brown);
+            font-size: 1rem;
+        }
+
+        /* Content Areas */
+        .content-section {
+            display: none;
+            animation: slideInUp 0.4s ease-out;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .card h2 {
+            color: var(--dark-brown);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 6px;
+            border: 1px solid #f0f0f0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table th {
+            background: linear-gradient(135deg, var(--soft-cream) 0%, #fff9f0 100%);
+            color: var(--dark-brown);
+            padding: 1.2rem 1rem;
+            text-align: left;
+            font-weight: 700;
+            border-bottom: 2px solid var(--amber-gold);
+            font-size: 0.95rem;
+        }
+
+        table td {
+            padding: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+            color: var(--warm-gray);
+            transition: background-color 0.2s ease;
+        }
+
+        table tr:hover {
+            background-color: #fafafa;
+        }
+
+        table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .status-badge:hover {
+            transform: scale(1.05);
+        }
+
+        .status-new {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            color: #1565c0;
+        }
+
+        .status-read {
+            background: linear-gradient(135deg, #f0f4c3 0%, #dcedc8 100%);
+            color: #827717;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            margin-right: 0.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+
+        .action-btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-view {
+            background: linear-gradient(135deg, var(--amber-gold) 0%, #e09200 100%);
+            color: white;
+        }
+
+        .btn-view:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(244, 163, 0, 0.3);
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #f44336 0%, #e53935 100%);
+            color: white;
+        }
+
+        .btn-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(244, 51, 54, 0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--amber-gold) 0%, #e09200 100%);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(244, 163, 0, 0.3);
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:active {
+            transform: translateY(-1px);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(3px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideInUp 0.4s ease-out;
+            border: 1px solid #f0f0f0;
+        }
+
+        .modal-content h2 {
+            color: var(--dark-brown);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--dark-brown);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.85rem;
+            border: 2px solid #eee;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--amber-gold);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(244, 163, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel {
+            background: linear-gradient(135deg, #e0e0e0 0%, #d0d0d0 100%);
+            color: #333;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--warm-gray);
+            animation: slideInUp 0.4s ease-out;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-full {
+            grid-column: 1 / -1;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            display: none;
+            border-left: 4px solid #28a745;
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--amber-gold) 0%, #e09200 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(244, 163, 0, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(244, 163, 0, 0.3);
+        }
+
+        .stat-card h3 {
+            font-size: 0.9rem;
+            opacity: 0.95;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                width: 200px;
+            }
+
+            .admin-main {
+                margin-left: 200px;
+                padding: 1rem;
+            }
+
+            .admin-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .user-info {
+                text-align: left;
+                margin-top: 1rem;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-container" id="loginContainer">
+        <div class="login-box">
+            <h1>RMG Admin</h1>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="your@email.com" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="••••••••" required>
+            </div>
+            <button class="login-btn" id="loginBtn">Login</button>
+            <div class="error-message" id="loginError"></div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div class="admin-container" id="adminContainer">
+        <!-- Sidebar -->
+        <div class="admin-sidebar">
+            <h2>RMG Admin</h2>
+            <ul class="admin-nav">
+                <li><a class="nav-link active" data-section="dashboard">📊 Dashboard</a></li>
+                <li><a class="nav-link" data-section="submissions">📧 Contact Submissions</a></li>
+                <li><a class="nav-link" data-section="listings">🏠 Property Listings</a></li>
+                <li><a class="nav-link" data-section="services">🛠️ Services</a></li>
+                <li><a class="nav-link" data-section="blog">📝 Blog Posts</a></li>
+                <li><a class="nav-link logout-btn" id="logoutBtn">🚪 Logout</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="admin-main">
+            <div class="admin-header">
+                <h1>Admin Dashboard</h1>
+                <div class="user-info">
+                    <p>Logged in as:</p>
+                    <p id="userEmail" style="font-weight: 600; color: var(--dark-brown);"></p>
+                </div>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div class="content-section active" id="dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Contact Submissions</h3>
+                        <div class="number" id="submissionCount">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Property Listings</h3>
+                        <div class="number" id="listingCount">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Blog Posts</h3>
+                        <div class="number" id="blogCount">0</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>📊 Dashboard Overview</h2>
+                    <p>Welcome to the RMG Admin Dashboard! Use the menu on the left to manage your content and view submissions.</p>
+                </div>
+            </div>
+
+            <!-- Contact Submissions Section -->
+            <div class="content-section" id="submissions">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2>📧 Contact Form Submissions</h2>
+                        <button class="btn-primary" id="exportCsvBtn">⬇️ Export CSV</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="submissionsTable">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Service</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="submissionsBody">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="noSubmissions" class="empty-state">
+                        <p>No submissions yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Listings Section -->
+            <div class="content-section" id="listings">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2>🏠 Property Listings</h2>
+                        <button class="btn-primary" id="addListingBtn">+ Add Listing</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="listingsTable">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Price</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listingsBody">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="noListings" class="empty-state">
+                        <p>No listings yet. <a href="#" id="addFirstListing" style="color: var(--amber-gold); text-decoration: none; font-weight: 600;">Create one</a></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Services Section -->
+            <div class="content-section" id="services">
+                <div class="card">
+                    <h2>🛠️ Services Management</h2>
+                    <p style="margin-bottom: 2rem;">Services are currently hardcoded. To modify them, edit the pages directly or contact development.</p>
+                    <div id="servicesGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;"></div>
+                </div>
+            </div>
+
+            <!-- Blog Section -->
+            <div class="content-section" id="blog">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2>📝 Blog Posts</h2>
+                        <button class="btn-primary" id="addBlogBtn">+ Add Post</button>
+                    </div>
+                    <div class="table-container">
+                        <table id="blogTable">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Author</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="blogBody">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="noBlog" class="empty-state">
+                        <p>No blog posts yet. <a href="#" id="addFirstBlog" style="color: var(--amber-gold); text-decoration: none; font-weight: 600;">Create one</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Submission Modal -->
+    <div class="modal" id="submissionModal">
+        <div class="modal-content">
+            <h2>Contact Submission Details</h2>
+            <div id="submissionDetails"></div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="document.getElementById('submissionModal').classList.remove('active')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Listing Modal -->
+    <div class="modal" id="listingModal">
+        <div class="modal-content">
+            <h2 id="listingModalTitle">Add New Listing</h2>
+            <div class="success-message" id="listingSuccess">Listing saved successfully!</div>
+            <form id="listingForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="listingTitle">Title *</label>
+                        <input type="text" id="listingTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="listingPrice">Price *</label>
+                        <input type="number" id="listingPrice" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="listingLocation">Location *</label>
+                        <input type="text" id="listingLocation" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="listingType">Property Type</label>
+                        <select id="listingType">
+                            <option>Residential</option>
+                            <option>Commercial</option>
+                            <option>Land</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group form-full">
+                    <label for="listingDescription">Description</label>
+                    <textarea id="listingDescription" placeholder="Enter property details..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="listingBedrooms">Bedrooms</label>
+                        <input type="number" id="listingBedrooms" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="listingBathrooms">Bathrooms</label>
+                        <input type="number" id="listingBathrooms" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="listingArea">Area (sqft)</label>
+                        <input type="number" id="listingArea" min="0">
+                    </div>
+                </div>
+                <div class="form-group form-full">
+                    <label for="listingImage">Image URL</label>
+                    <input type="url" id="listingImage" placeholder="https://...">
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="document.getElementById('listingModal').classList.remove('active')">Cancel</button>
+                <button class="btn-primary" id="saveListingBtn">Save Listing</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Blog Modal -->
+    <div class="modal" id="blogModal">
+        <div class="modal-content">
+            <h2 id="blogModalTitle">Add New Blog Post</h2>
+            <div class="success-message" id="blogSuccess">Blog post saved successfully!</div>
+            <form id="blogForm">
+                <div class="form-group form-full">
+                    <label for="blogTitle">Title *</label>
+                    <input type="text" id="blogTitle" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="blogAuthor">Author *</label>
+                        <input type="text" id="blogAuthor" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="blogDate">Date *</label>
+                        <input type="date" id="blogDate" required>
+                    </div>
+                </div>
+                <div class="form-group form-full">
+                    <label for="blogExcerpt">Excerpt</label>
+                    <textarea id="blogExcerpt" placeholder="Short summary of the post..." style="min-height: 80px;"></textarea>
+                </div>
+                <div class="form-group form-full">
+                    <label for="blogContent">Content *</label>
+                    <textarea id="blogContent" placeholder="Full blog post content..." required style="min-height: 250px;"></textarea>
+                </div>
+                <div class="form-group form-full">
+                    <label for="blogImage">Featured Image URL</label>
+                    <input type="url" id="blogImage" placeholder="https://...">
+                </div>
+                <div class="form-group form-full">
+                    <label for="blogCategory">Category</label>
+                    <select id="blogCategory">
+                        <option>General</option>
+                        <option>Real Estate</option>
+                        <option>Investment</option>
+                        <option>Market Trends</option>
+                        <option>Tips & Advice</option>
+                    </select>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="document.getElementById('blogModal').classList.remove('active')">Cancel</button>
+                <button class="btn-primary" id="saveBlogBtn">Save Post</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBwLN__kNBtPUmu1HDq9w2vxhAaoHmhs3g",
+            authDomain: "rmgfirebase-1ac0f.firebaseapp.com",
+            projectId: "rmgfirebase-1ac0f",
+            storageBucket: "rmgfirebase-1ac0f.firebasestorage.app",
+            messagingSenderId: "675350314436",
+            appId: "1:675350314436:web:590f0a73658e41b409f891"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // State
+        let currentUser = null;
+        let submissionsData = [];
+        let listingsData = [];
+        let blogData = [];
+        let editingListingId = null;
+        let editingBlogId = null;
+
+        // DOM Elements
+        const loginContainer = document.getElementById('loginContainer');
+        const adminContainer = document.getElementById('adminContainer');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const loginError = document.getElementById('loginError');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const userEmail = document.getElementById('userEmail');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const exportCsvBtn = document.getElementById('exportCsvBtn');
+        const addListingBtn = document.getElementById('addListingBtn');
+        const addBlogBtn = document.getElementById('addBlogBtn');
+        const saveListingBtn = document.getElementById('saveListingBtn');
+        const saveBlogBtn = document.getElementById('saveBlogBtn');
+
+        // Login
+        loginBtn.addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                loginError.textContent = 'Please enter email and password';
+                return;
+            }
+
+            try {
+                loginBtn.disabled = true;
+                loginBtn.textContent = 'Logging in...';
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                loginError.textContent = error.message;
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Login';
+            }
+        });
+
+        // Logout
+        logoutBtn.addEventListener('click', async () => {
+            await signOut(auth);
+        });
+
+        // Enhanced Auth listener with transition
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                loginContainer.style.display = 'none';
+                adminContainer.classList.add('active');
+                userEmail.textContent = user.email;
+                
+                // Load data with slight delay for smooth transitions
+                setTimeout(() => {
+                    loadSubmissions();
+                    loadListings();
+                    loadBlogPosts();
+                    loadStats();
+                }, 100);
+            } else {
+                currentUser = null;
+                loginContainer.style.display = 'flex';
+                adminContainer.classList.remove('active');
+                emailInput.value = '';
+                passwordInput.value = '';
+            }
+        });
+
+        // Navigation with smooth transitions
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                if (link.id === 'logoutBtn') return;
+                e.preventDefault();
+                
+                navLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+
+                const section = link.dataset.section;
+                const allSections = document.querySelectorAll('.content-section');
+                
+                allSections.forEach(s => {
+                    s.classList.remove('active');
+                });
+                
+                // Add slight delay for smooth transition
+                setTimeout(() => {
+                    const targetSection = document.getElementById(section);
+                    if (targetSection) {
+                        targetSection.classList.add('active');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                }, 50);
+            });
+        });
+
+        // Load submissions
+        async function loadSubmissions() {
+            try {
+                const querySnapshot = await getDocs(collection(db, 'contact_submissions'));
+                const tbody = document.getElementById('submissionsBody');
+                const noSubmissions = document.getElementById('noSubmissions');
+                
+                submissionsData = [];
+                tbody.innerHTML = '';
+                
+                if (querySnapshot.empty) {
+                    noSubmissions.style.display = 'block';
+                    return;
+                }
+
+                noSubmissions.style.display = 'none';
+                
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    submissionsData.push({ id: doc.id, ...data });
+                    
+                    const row = document.createElement('tr');
+                    const date = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleDateString() : 'N/A';
+                    
+                    row.innerHTML = `
+                        <td>${data.name}</td>
+                        <td>${data.email}</td>
+                        <td>${data.service || 'Not specified'}</td>
+                        <td>${date}</td>
+                        <td><span class="status-badge status-new">New</span></td>
+                        <td>
+                            <button class="action-btn btn-view" onclick="viewSubmission('${doc.id}')">View</button>
+                            <button class="action-btn btn-delete" onclick="deleteSubmission('${doc.id}')">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error loading submissions:', error);
+            }
+        }
+
+        // View submission
+        window.viewSubmission = function(id) {
+            const submission = submissionsData.find(s => s.id === id);
+            if (!submission) return;
+
+            const modal = document.getElementById('submissionModal');
+            const detailsDiv = document.getElementById('submissionDetails');
+            
+            const date = submission.timestamp ? new Date(submission.timestamp.seconds * 1000).toLocaleString() : 'N/A';
+            
+            detailsDiv.innerHTML = `
+                <div style="margin-bottom: 1rem;">
+                    <p><strong>Name:</strong> ${submission.name}</p>
+                    <p><strong>Email:</strong> ${submission.email}</p>
+                    <p><strong>Phone:</strong> ${submission.phone || 'Not provided'}</p>
+                    <p><strong>Service:</strong> ${submission.service || 'Not specified'}</p>
+                    <p><strong>Date:</strong> ${date}</p>
+                    <p style="margin-top: 1rem;"><strong>Message:</strong></p>
+                    <p style="background-color: #f5f5f5; padding: 1rem; border-radius: 4px; white-space: pre-wrap;">${submission.message}</p>
+                </div>
+            `;
+            
+            modal.classList.add('active');
+        };
+
+        // Delete submission with confirmation
+        window.deleteSubmission = async function(id) {
+            const confirmed = confirm('Are you sure you want to delete this submission? This action cannot be undone.');
+            if (!confirmed) return;
+
+            const deleteBtn = event.target;
+            const originalText = deleteBtn.textContent;
+            deleteBtn.textContent = 'Deleting...';
+            deleteBtn.disabled = true;
+
+            try {
+                await deleteDoc(doc(db, 'contact_submissions', id));
+                deleteBtn.textContent = 'Deleted ✓';
+                setTimeout(() => {
+                    loadSubmissions();
+                }, 600);
+            } catch (error) {
+                alert('Error deleting submission: ' + error.message);
+                deleteBtn.textContent = originalText;
+                deleteBtn.disabled = false;
+            }
+        };
+
+        // Export CSV with feedback
+        exportCsvBtn.addEventListener('click', () => {
+            if (submissionsData.length === 0) {
+                alert('No submissions to export');
+                return;
+            }
+
+            const originalText = exportCsvBtn.textContent;
+            exportCsvBtn.textContent = '⬇️ Exporting...';
+            exportCsvBtn.disabled = true;
+
+            setTimeout(() => {
+                const headers = ['Name', 'Email', 'Phone', 'Service', 'Date', 'Message'];
+                const rows = submissionsData.map(s => [
+                    s.name,
+                    s.email,
+                    s.phone || '',
+                    s.service || '',
+                    s.timestamp ? new Date(s.timestamp.seconds * 1000).toLocaleString() : '',
+                    s.message
+                ]);
+
+                let csvContent = headers.join(',') + '\n';
+                rows.forEach(row => {
+                    csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `submissions_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                exportCsvBtn.textContent = '✓ Exported';
+                setTimeout(() => {
+                    exportCsvBtn.textContent = originalText;
+                    exportCsvBtn.disabled = false;
+                }, 1500);
+            }, 500);
+        });
+
+        // Load listings
+        async function loadListings() {
+            try {
+                const querySnapshot = await getDocs(collection(db, 'listings'));
+                const tbody = document.getElementById('listingsBody');
+                const noListings = document.getElementById('noListings');
+                
+                listingsData = [];
+                tbody.innerHTML = '';
+                
+                if (querySnapshot.empty) {
+                    noListings.style.display = 'block';
+                    return;
+                }
+
+                noListings.style.display = 'none';
+                
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    listingsData.push({ id: doc.id, ...data });
+                    
+                    const row = document.createElement('tr');
+                    const status = data.status || 'Active';
+                    const statusClass = status === 'Active' ? 'status-new' : 'status-read';
+                    
+                    row.innerHTML = `
+                        <td>${data.title}</td>
+                        <td>$${data.price?.toLocaleString() || '0'}</td>
+                        <td>${data.location}</td>
+                        <td><span class="status-badge ${statusClass}">${status}</span></td>
+                        <td>
+                            <button class="action-btn btn-view" onclick="editListing('${doc.id}')">Edit</button>
+                            <button class="action-btn btn-delete" onclick="deleteListing('${doc.id}')">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error loading listings:', error);
+            }
+        }
+
+        // Add/Edit listing modal with enhanced UX
+        addListingBtn.addEventListener('click', () => {
+            editingListingId = null;
+            document.getElementById('listingModalTitle').textContent = 'Add New Listing';
+            document.getElementById('listingForm').reset();
+            document.getElementById('listingSuccess').classList.remove('show');
+            const modal = document.getElementById('listingModal');
+            modal.classList.add('active');
+            document.getElementById('listingTitle').focus();
+        });
+
+        window.editListing = function(id) {
+            const listing = listingsData.find(l => l.id === id);
+            if (!listing) return;
+
+            editingListingId = id;
+            document.getElementById('listingModalTitle').textContent = 'Edit Listing';
+            document.getElementById('listingTitle').value = listing.title || '';
+            document.getElementById('listingPrice').value = listing.price || '';
+            document.getElementById('listingLocation').value = listing.location || '';
+            document.getElementById('listingType').value = listing.type || 'Residential';
+            document.getElementById('listingDescription').value = listing.description || '';
+            document.getElementById('listingBedrooms').value = listing.bedrooms || '';
+            document.getElementById('listingBathrooms').value = listing.bathrooms || '';
+            document.getElementById('listingArea').value = listing.area || '';
+            document.getElementById('listingImage').value = listing.image || '';
+            document.getElementById('listingSuccess').classList.remove('show');
+            document.getElementById('listingModal').classList.add('active');
+        };
+
+        saveListingBtn.addEventListener('click', async () => {
+            const title = document.getElementById('listingTitle').value.trim();
+            const price = parseFloat(document.getElementById('listingPrice').value) || 0;
+            const location = document.getElementById('listingLocation').value.trim();
+
+            if (!title || !price || !location) {
+                alert('Please fill in Title, Price, and Location');
+                return;
+            }
+
+            const listingData = {
+                title,
+                price,
+                location,
+                type: document.getElementById('listingType').value,
+                description: document.getElementById('listingDescription').value,
+                bedrooms: parseInt(document.getElementById('listingBedrooms').value) || 0,
+                bathrooms: parseInt(document.getElementById('listingBathrooms').value) || 0,
+                area: parseInt(document.getElementById('listingArea').value) || 0,
+                image: document.getElementById('listingImage').value,
+                status: 'Active',
+                updatedAt: serverTimestamp()
+            };
+
+            try {
+                saveListingBtn.disabled = true;
+                saveListingBtn.textContent = 'Saving...';
+
+                if (editingListingId) {
+                    await updateDoc(doc(db, 'listings', editingListingId), listingData);
+                } else {
+                    listingData.createdAt = serverTimestamp();
+                    await addDoc(collection(db, 'listings'), listingData);
+                }
+
+                document.getElementById('listingSuccess').classList.add('show');
+                setTimeout(() => {
+                    document.getElementById('listingModal').classList.remove('active');
+                    loadListings();
+                    loadStats();
+                }, 1500);
+            } catch (error) {
+                alert('Error saving listing: ' + error.message);
+            } finally {
+                saveListingBtn.disabled = false;
+                saveListingBtn.textContent = 'Save Listing';
+            }
+        });
+
+        window.deleteListing = async function(id) {
+            const confirmed = confirm('Are you sure you want to delete this listing? This action cannot be undone.');
+            if (!confirmed) return;
+
+            const deleteBtn = event.target;
+            const originalText = deleteBtn.textContent;
+            deleteBtn.textContent = 'Deleting...';
+            deleteBtn.disabled = true;
+
+            try {
+                await deleteDoc(doc(db, 'listings', id));
+                deleteBtn.textContent = 'Deleted ✓';
+                setTimeout(() => {
+                    loadListings();
+                    loadStats();
+                }, 600);
+            } catch (error) {
+                alert('Error deleting listing: ' + error.message);
+                deleteBtn.textContent = originalText;
+                deleteBtn.disabled = false;
+            }
+        };
+
+        // Load blog posts
+        async function loadBlogPosts() {
+            try {
+                const querySnapshot = await getDocs(collection(db, 'blog_posts'));
+                const tbody = document.getElementById('blogBody');
+                const noBlog = document.getElementById('noBlog');
+                
+                blogData = [];
+                tbody.innerHTML = '';
+                
+                if (querySnapshot.empty) {
+                    noBlog.style.display = 'block';
+                    return;
+                }
+
+                noBlog.style.display = 'none';
+                
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    blogData.push({ id: doc.id, ...data });
+                    
+                    const row = document.createElement('tr');
+                    const date = data.date ? new Date(data.date).toLocaleDateString() : 'N/A';
+                    const status = data.status || 'Published';
+                    const statusClass = status === 'Published' ? 'status-new' : 'status-read';
+                    
+                    row.innerHTML = `
+                        <td>${data.title}</td>
+                        <td>${data.author || 'Unknown'}</td>
+                        <td>${date}</td>
+                        <td><span class="status-badge ${statusClass}">${status}</span></td>
+                        <td>
+                            <button class="action-btn btn-view" onclick="editBlog('${doc.id}')">Edit</button>
+                            <button class="action-btn btn-delete" onclick="deleteBlog('${doc.id}')">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error loading blog posts:', error);
+            }
+        }
+
+        // Add/Edit blog modal with enhanced UX
+        addBlogBtn.addEventListener('click', () => {
+            editingBlogId = null;
+            document.getElementById('blogModalTitle').textContent = 'Add New Blog Post';
+            document.getElementById('blogForm').reset();
+            document.getElementById('blogSuccess').classList.remove('show');
+            const modal = document.getElementById('blogModal');
+            modal.classList.add('active');
+            document.getElementById('blogTitle').focus();
+        });
+
+        window.editBlog = function(id) {
+            const blog = blogData.find(b => b.id === id);
+            if (!blog) return;
+
+            editingBlogId = id;
+            document.getElementById('blogModalTitle').textContent = 'Edit Blog Post';
+            document.getElementById('blogTitle').value = blog.title || '';
+            document.getElementById('blogAuthor').value = blog.author || '';
+            document.getElementById('blogDate').value = blog.date || '';
+            document.getElementById('blogExcerpt').value = blog.excerpt || '';
+            document.getElementById('blogContent').value = blog.content || '';
+            document.getElementById('blogImage').value = blog.image || '';
+            document.getElementById('blogCategory').value = blog.category || 'General';
+            document.getElementById('blogSuccess').classList.remove('show');
+            document.getElementById('blogModal').classList.add('active');
+        };
+
+        saveBlogBtn.addEventListener('click', async () => {
+            const title = document.getElementById('blogTitle').value.trim();
+            const author = document.getElementById('blogAuthor').value.trim();
+            const date = document.getElementById('blogDate').value;
+            const content = document.getElementById('blogContent').value.trim();
+
+            if (!title || !author || !date || !content) {
+                alert('Please fill in Title, Author, Date, and Content');
+                return;
+            }
+
+            const blogPostData = {
+                title,
+                author,
+                date,
+                excerpt: document.getElementById('blogExcerpt').value,
+                content,
+                image: document.getElementById('blogImage').value,
+                category: document.getElementById('blogCategory').value,
+                status: 'Published',
+                updatedAt: serverTimestamp()
+            };
+
+            try {
+                saveBlogBtn.disabled = true;
+                saveBlogBtn.textContent = 'Saving...';
+
+                if (editingBlogId) {
+                    await updateDoc(doc(db, 'blog_posts', editingBlogId), blogPostData);
+                } else {
+                    blogPostData.createdAt = serverTimestamp();
+                    await addDoc(collection(db, 'blog_posts'), blogPostData);
+                }
+
+                document.getElementById('blogSuccess').classList.add('show');
+                setTimeout(() => {
+                    document.getElementById('blogModal').classList.remove('active');
+                    loadBlogPosts();
+                    loadStats();
+                }, 1500);
+            } catch (error) {
+                alert('Error saving blog post: ' + error.message);
+            } finally {
+                saveBlogBtn.disabled = false;
+                saveBlogBtn.textContent = 'Save Post';
+            }
+        });
+
+        window.deleteBlog = async function(id) {
+            const confirmed = confirm('Are you sure you want to delete this blog post? This action cannot be undone.');
+            if (!confirmed) return;
+
+            const deleteBtn = event.target;
+            const originalText = deleteBtn.textContent;
+            deleteBtn.textContent = 'Deleting...';
+            deleteBtn.disabled = true;
+
+            try {
+                await deleteDoc(doc(db, 'blog_posts', id));
+                deleteBtn.textContent = 'Deleted ✓';
+                setTimeout(() => {
+                    loadBlogPosts();
+                    loadStats();
+                }, 600);
+            } catch (error) {
+                alert('Error deleting blog post: ' + error.message);
+                deleteBtn.textContent = originalText;
+                deleteBtn.disabled = false;
+            }
+        };
+
+        // Load stats
+        async function loadStats() {
+            try {
+                const submissionsSnap = await getDocs(collection(db, 'contact_submissions'));
+                const listingsSnap = await getDocs(collection(db, 'listings'));
+                const blogSnap = await getDocs(collection(db, 'blog_posts'));
+                
+                document.getElementById('submissionCount').textContent = submissionsSnap.size;
+                document.getElementById('listingCount').textContent = listingsSnap.size;
+                document.getElementById('blogCount').textContent = blogSnap.size;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+        });
+
+        // Close modal when clicking outside
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+
+        // Enter key login
+        [emailInput, passwordInput].forEach(input => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') loginBtn.click();
+            });
+        });
+    </script>
+</body>
+</html>

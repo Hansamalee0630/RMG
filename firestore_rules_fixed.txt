@@ -1,0 +1,44 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Contact submissions - FIXED VERSION
+    match /contact_submissions/{docId} {
+      // Allow ANYONE to create a submission
+      allow create: if
+        // Only allow these fields
+        request.resource.data.keys().hasAll(["name", "email", "message"]) &&
+        request.resource.data.keys().hasOnly(["name", "email", "phone", "service", "message", "timestamp"]) &&
+        // Validate name
+        request.resource.data.name.size() > 0 &&
+        request.resource.data.name.size() < 100 &&
+        // Validate email
+        request.resource.data.email.size() > 0 &&
+        request.resource.data.email.size() < 100 &&
+        // Validate message
+        request.resource.data.message.size() > 0 &&
+        request.resource.data.message.size() < 5000;
+
+      // Only logged-in admin can read/update/delete
+      allow read, update, delete: if request.auth != null;
+    }
+    
+    // Listings collection
+    match /listings/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Blog posts collection
+    match /blog_posts/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Deny everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
